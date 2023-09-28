@@ -210,6 +210,7 @@ class AutomaticSpeechRecognitionPipeline(ChunkPipeline):
         device: Union[int, "torch.device"] = None,
         torch_dtype: Optional[Union[str, "torch.dtype"]] = None,
         binary_output: bool = False,
+        beam_width: int = 100,
         **kwargs,
     ):
         if framework is None:
@@ -221,6 +222,7 @@ class AutomaticSpeechRecognitionPipeline(ChunkPipeline):
         self.feature_extractor = feature_extractor
         self.modelcard = modelcard
         self.framework = framework
+        self.beam_width=beam_width
 
         # `accelerate` device map
         hf_device_map = getattr(self.model, "hf_device_map", None)
@@ -635,7 +637,7 @@ class AutomaticSpeechRecognitionPipeline(ChunkPipeline):
         if self.type == "ctc_with_lm":
             if decoder_kwargs is None:
                 decoder_kwargs = {}
-            beams = self.decoder.decode_beams(items, **decoder_kwargs)
+            beams = self.decoder.decode_beams(items,self.beam_width **decoder_kwargs)
             text = beams[0][0]
             if return_timestamps:
                 # Simply cast from pyctcdecode format to wav2vec2 format to leverage
